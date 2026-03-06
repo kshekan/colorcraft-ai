@@ -1,6 +1,7 @@
 "use client";
 
-import { Heart, Trash2, Download } from "lucide-react";
+import { Heart, Trash2, Download, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { ColoringPage } from "@/lib/types";
 import { downloadPng } from "@/lib/image-utils";
 
@@ -15,6 +16,12 @@ export default function GalleryCard({
   onDelete,
   onToggleFavorite,
 }: GalleryCardProps) {
+  const router = useRouter();
+
+  const handleIterate = () => {
+    router.push(`/?description=${encodeURIComponent(page.description)}`);
+  };
+
   const handleDownload = () => {
     const slug = page.description
       .toLowerCase()
@@ -60,6 +67,13 @@ export default function GalleryCard({
               className="w-4 h-4"
               fill={page.favorite ? "currentColor" : "none"}
             />
+          </button>
+          <button
+            onClick={handleIterate}
+            className="p-2 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+            title="Iterate on this"
+          >
+            <RefreshCw className="w-4 h-4" />
           </button>
           <button
             onClick={handleDownload}

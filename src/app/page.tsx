@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { Suspense, useCallback, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import GeneratorForm from "@/components/GeneratorForm";
 import ColoringPagePreview from "@/components/ColoringPagePreview";
@@ -9,7 +10,9 @@ import { useGenerate } from "@/hooks/useGenerate";
 import { useGallery } from "@/hooks/useGallery";
 import { useRateLimit } from "@/hooks/useRateLimit";
 
-export default function HomePage() {
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const initialDescription = searchParams.get("description") ?? "";
   const { imageData, generatedPrompt, loading, error, generate, reset } =
     useGenerate();
   const { addPage } = useGallery();
@@ -87,7 +90,11 @@ export default function HomePage() {
 
       {!imageData && (
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-          <GeneratorForm onGenerate={handleGenerate} loading={loading} />
+          <GeneratorForm
+            onGenerate={handleGenerate}
+            loading={loading}
+            initialDescription={initialDescription}
+          />
         </div>
       )}
 
@@ -132,5 +139,13 @@ export default function HomePage() {
         />
       )}
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense>
+      <HomeContent />
+    </Suspense>
   );
 }

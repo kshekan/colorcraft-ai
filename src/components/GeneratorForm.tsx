@@ -14,13 +14,15 @@ const EXAMPLE_PROMPTS = [
 interface GeneratorFormProps {
   onGenerate: (description: string) => void;
   loading: boolean;
+  initialDescription?: string;
 }
 
 export default function GeneratorForm({
   onGenerate,
   loading,
+  initialDescription = "",
 }: GeneratorFormProps) {
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(initialDescription);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
