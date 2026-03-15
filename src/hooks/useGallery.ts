@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { nanoid } from "nanoid";
-import type { ColoringPage } from "@/lib/types";
+import type { ColoringPage, PageMode } from "@/lib/types";
 import {
   getAllPages,
   savePage,
@@ -26,13 +26,14 @@ export function useGallery() {
   }, [refresh]);
 
   const addPage = useCallback(
-    async (description: string, imageData: string) => {
+    async (description: string, imageData: string, mode: PageMode = "coloring") => {
       const page: ColoringPage = {
         id: nanoid(),
         description,
         imageData,
         createdAt: Date.now(),
         favorite: false,
+        mode,
       };
       await savePage(page);
       await refresh();

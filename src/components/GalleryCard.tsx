@@ -11,6 +11,11 @@ interface GalleryCardProps {
   onToggleFavorite: (id: string) => void;
 }
 
+const MODE_LABELS: Record<string, string> = {
+  "tracing-simple": "Simple Tracing",
+  "tracing-detailed": "Detailed Tracing",
+};
+
 export default function GalleryCard({
   page,
   onDelete,
@@ -19,7 +24,13 @@ export default function GalleryCard({
   const router = useRouter();
 
   const handleIterate = () => {
-    router.push(`/?description=${encodeURIComponent(page.description)}`);
+    const params = new URLSearchParams({
+      description: page.description,
+    });
+    if (page.mode && page.mode !== "coloring") {
+      params.set("mode", page.mode);
+    }
+    router.push(`/?${params.toString()}`);
   };
 
   const handleDownload = () => {
@@ -37,14 +48,21 @@ export default function GalleryCard({
     year: "numeric",
   });
 
+  const modeLabel = page.mode ? MODE_LABELS[page.mode] : null;
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
-      <div className="w-full aspect-[3/4] bg-gray-50 overflow-hidden p-3 flex items-center justify-center">
+      <div className="relative w-full aspect-[3/4] bg-gray-50 overflow-hidden p-3 flex items-center justify-center">
         <img
           src={`data:image/png;base64,${page.imageData}`}
           alt={page.description}
           className="max-w-full max-h-full object-contain"
         />
+        {modeLabel && (
+          <span className="absolute top-2 left-2 text-[10px] font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+            {modeLabel}
+          </span>
+        )}
       </div>
 
       <div className="p-3">

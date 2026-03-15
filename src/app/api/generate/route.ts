@@ -12,7 +12,7 @@ function getClient() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { description } = await request.json();
+    const { description, mode } = await request.json();
 
     if (!description || typeof description !== "string") {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const prompt = buildColoringPrompt(description);
+    const prompt = buildColoringPrompt(description, mode);
     const ai = getClient();
 
     const response = await ai.models.generateContent({

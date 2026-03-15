@@ -9,41 +9,48 @@ import PasscodeModal from "@/components/PasscodeModal";
 import { useGenerate } from "@/hooks/useGenerate";
 import { useGallery } from "@/hooks/useGallery";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import type { PageMode } from "@/lib/types";
 
 function HomeContent() {
   const searchParams = useSearchParams();
   const initialDescription = searchParams.get("description") ?? "";
+  const initialMode =
+    (searchParams.get("mode") as PageMode | null) ?? "coloring";
   const { imageData, generatedPrompt, loading, error, generate, reset } =
     useGenerate();
   const { addPage } = useGallery();
   const { remaining, needsPasscode, recordGeneration, verifyPasscode } =
     useRateLimit();
   const descriptionRef = useRef("");
+  const modeRef = useRef<PageMode>("coloring");
   const [showPasscode, setShowPasscode] = useState(false);
   const [pendingDescription, setPendingDescription] = useState<string | null>(
     null
   );
+  const [pendingMode, setPendingMode] = useState<PageMode>("coloring");
 
   const doGenerate = useCallback(
-    async (description: string) => {
+    async (description: string, mode: PageMode) => {
       descriptionRef.current = description;
+      modeRef.current = mode;
       recordGeneration();
-      const result = await generate(description);
+      const result = await generate(description, mode);
       if (result) {
-        await addPage(description, result);
+        await addPage(description, result, mode);
       }
     },
     [generate, addPage, recordGeneration]
   );
 
   const handleGenerate = useCallback(
-    async (description: string) => {
+    async (description: string, mode: PageMode) => {
       if (needsPasscode) {
         setPendingDescription(description);
+        setPendingMode(mode);
         setShowPasscode(true);
         return;
       }
-      await doGenerate(description);
+      await doGenerate(description, mode);
     },
     [needsPasscode, doGenerate]
   );
@@ -58,12 +65,12 @@ function HomeContent() {
       const ok = verifyPasscode(code);
       if (ok && pendingDescription) {
         setShowPasscode(false);
-        doGenerate(pendingDescription);
+        doGenerate(pendingDescription, pendingMode);
         setPendingDescription(null);
       }
       return ok;
     },
-    [verifyPasscode, pendingDescription, doGenerate]
+    [verifyPasscode, pendingDescription, pendingMode, doGenerate]
   );
 
   return (
@@ -73,8 +80,8 @@ function HomeContent() {
           Create Your Own Coloring Page
         </h1>
         <p className="text-gray-500">
-          Describe what you&apos;d like to color, and AI will generate a
-          printable coloring page just for you.
+          Describe what you&apos;d like to color or trace, and AI will generate
+          a printable page just for you.
         </p>
       </div>
 
@@ -94,6 +101,7 @@ function HomeContent() {
             onGenerate={handleGenerate}
             loading={loading}
             initialDescription={initialDescription}
+            initialMode={initialMode}
           />
         </div>
       )}
@@ -111,7 +119,7 @@ function HomeContent() {
             <div className="w-8 h-8 border-3 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
             <div className="text-left">
               <p className="text-sm font-medium text-gray-900">
-                Generating your coloring page...
+                Generating your page...
               </p>
               <p className="text-xs text-gray-500">
                 This usually takes 10-30 seconds

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { GenerateResponse } from "@/lib/types";
+import type { GenerateResponse, PageMode } from "@/lib/types";
 
 export function useGenerate() {
   const [imageData, setImageData] = useState<string | null>(null);
@@ -9,36 +9,41 @@ export function useGenerate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generate = useCallback(async (description: string) => {
-    setLoading(true);
-    setError(null);
-    setImageData(null);
-    setGeneratedPrompt(null);
+  const generate = useCallback(
+    async (description: string, mode: PageMode = "coloring") => {
+      setLoading(true);
+      setError(null);
+      setImageData(null);
+      setGeneratedPrompt(null);
 
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description }),
-      });
+      try {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description, mode }),
+        });
 
-      const data: GenerateResponse = await res.json();
+        const data: GenerateResponse = await res.json();
 
-      if (!res.ok || data.error) {
-        setError(data.error || "Failed to generate coloring page");
+        if (!res.ok || data.error) {
+          setError(data.error || "Failed to generate coloring page");
+          return null;
+        }
+
+        setImageData(data.imageData);
+        setGeneratedPrompt(data.generatedPrompt ?? null);
+        return data.imageData;
+      } catch {
+        setError(
+          "Network error. Please check your connection and try again."
+        );
         return null;
+      } finally {
+        setLoading(false);
       }
-
-      setImageData(data.imageData);
-      setGeneratedPrompt(data.generatedPrompt ?? null);
-      return data.imageData;
-    } catch {
-      setError("Network error. Please check your connection and try again.");
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const reset = useCallback(() => {
     setImageData(null);
